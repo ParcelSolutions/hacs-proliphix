@@ -50,12 +50,9 @@ def _get_coordinator(call: ServiceCall) -> ProliphixDataUpdateCoordinator:
         entity_registry = er.async_get(hass)
         for entity_id in entity_ids:
             if (
-                (entity_entry := entity_registry.async_get(entity_id))
-                and entity_entry.config_entry_id
-            ):
-                return _get_coordinator_for_entry(
-                    hass, entity_entry.config_entry_id
-                )
+                entity_entry := entity_registry.async_get(entity_id)
+            ) and entity_entry.config_entry_id:
+                return _get_coordinator_for_entry(hass, entity_entry.config_entry_id)
         raise HomeAssistantError(f"No coordinator found for entity {entity_ids}")
 
     if len(coordinators) == 1:

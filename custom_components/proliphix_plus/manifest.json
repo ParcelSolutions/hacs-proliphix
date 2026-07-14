@@ -1,13 +1,13 @@
 {
   "domain": "proliphix_plus",
   "name": "Proliphix Plus",
-  "codeowners": ["@YOUR_GITHUB_USER"],
+  "codeowners": ["@ParcelSolutions"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/YOUR_USER/hacs-proliphix",
+  "documentation": "https://github.com/ParcelSolutions/hacs-proliphix",
   "integration_type": "device",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/YOUR_USER/hacs-proliphix/issues",
+  "issue_tracker": "https://github.com/ParcelSolutions/hacs-proliphix/issues",
   "requirements": [],
   "version": "1.0.0"
 }

@@ -1,6 +1,6 @@
-pytest
-pytest-asyncio
-pytest-homeassistant-custom-component
+pytest>=7.0
+pytest-asyncio>=0.21
+pytest-homeassistant-custom-component==0.13.45
 aiohttp
 python-dotenv
 ruff

@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11"
       - run: pip install ruff
       - run: ruff check custom_components tests live_tests
       - run: ruff format --check custom_components tests live_tests
@@ -30,6 +30,7 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
+          repository: ${{ github.repository }}
 
   test:
     runs-on: ubuntu-latest
@@ -37,6 +38,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11"
       - run: pip install -r requirements_test.txt
       - run: pytest tests -v

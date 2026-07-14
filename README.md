@@ -27,20 +27,29 @@ A modern Home Assistant HACS integration for **Proliphix thermostats**, providin
 
 You do **not** need to publish to the default HACS store. A **custom repository** is enough for personal use.
 
+#### GitHub repository settings (for CI / HACS validation)
+
+On GitHub, open **Settings → General** for this repo and set:
+
+- **Description:** `Home Assistant integration for Proliphix Plus network thermostats`
+- **Topics:** `homeassistant`, `hacs`, `hacs-integration`, `proliphix`, `thermostat`, `climate`
+
+The HACS GitHub Action reads these from GitHub metadata. If the repo is **private**, also ensure it is accessible to Actions; some HACS checks download files via the GitHub API and may fail until the repo is **public** or metadata is configured.
+
 #### 1. Push this project to GitHub
 
 ```bash
 # Create an empty repo on GitHub (public or private), then:
-git remote add origin https://github.com/YOUR_USER/hacs-proliphix.git
+git remote add origin https://github.com/ParcelSolutions/hacs-proliphix.git
 git push -u origin main
 ```
 
-Update `documentation` and `issue_tracker` in [`custom_components/proliphix_plus/manifest.json`](custom_components/proliphix_plus/manifest.json) to match your GitHub URL.
+Update `documentation` and `issue_tracker` in [`custom_components/proliphix_plus/manifest.json`](custom_components/proliphix_plus/manifest.json) if you fork or rename the repo.
 
 #### 2. Add the custom repository in Home Assistant
 
 1. **HACS** → **Integrations** → **⋮** (top right) → **Custom repositories**
-2. Repository URL: `https://github.com/YOUR_USER/hacs-proliphix`
+2. Repository URL: `https://github.com/ParcelSolutions/hacs-proliphix`
 3. Category: **Integration** → **Add**
 4. Search **Proliphix Plus** → **Download**
 5. **Restart Home Assistant**

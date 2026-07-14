@@ -24,9 +24,7 @@ async def run_checks() -> None:
     """Execute live read-only thermostat checks."""
     config = load_live_config()
     if not config.is_configured:
-        raise SystemExit(
-            "Missing PROLIPHIX_PLUS_HOST, USERNAME, or PASSWORD in .env"
-        )
+        raise SystemExit("Missing PROLIPHIX_PLUS_HOST, USERNAME, or PASSWORD in .env")
 
     async with aiohttp.ClientSession() as session:
         client = ProliphixClient(
