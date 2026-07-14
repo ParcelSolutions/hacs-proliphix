@@ -16,15 +16,44 @@ A modern Home Assistant HACS integration for **Proliphix thermostats**, providin
 
 ## Installation
 
-### HACS
+### HACS (recommended)
 
-1. Open HACS → Custom repositories
-2. Add this repository, category: **Integration**
-3. Install **Proliphix Plus**
-4. Restart Home Assistant
-5. Add the integration from **Settings → Devices & Services**
+**Does the repo need to be public?** No. HACS works with **private GitHub repositories** too, as long as HACS can access them:
 
-### Manual
+| Repo visibility | What you need |
+|-----------------|---------------|
+| **Public** | Add the repo URL in HACS → nothing else |
+| **Private** | A [GitHub personal access token](https://github.com/settings/tokens) with `repo` scope, added in **HACS → Settings → GitHub** (or during HACS setup) |
+
+You do **not** need to publish to the default HACS store. A **custom repository** is enough for personal use.
+
+#### 1. Push this project to GitHub
+
+```bash
+# Create an empty repo on GitHub (public or private), then:
+git remote add origin https://github.com/YOUR_USER/hacs-proliphix.git
+git push -u origin main
+```
+
+Update `documentation` and `issue_tracker` in [`custom_components/proliphix_plus/manifest.json`](custom_components/proliphix_plus/manifest.json) to match your GitHub URL.
+
+#### 2. Add the custom repository in Home Assistant
+
+1. **HACS** → **Integrations** → **⋮** (top right) → **Custom repositories**
+2. Repository URL: `https://github.com/YOUR_USER/hacs-proliphix`
+3. Category: **Integration** → **Add**
+4. Search **Proliphix Plus** → **Download**
+5. **Restart Home Assistant**
+
+#### 3. Add the integration
+
+1. **Settings** → **Devices & Services** → **Add Integration**
+2. Search **Proliphix Plus**
+3. Enter host (e.g. `192.168.1.10:8080` or `http://duinbergen.duckdns.org:8888`), username, and password
+
+For your setup, use the same URL as in `.env`. Home Assistant must be able to reach the thermostat (local IP or DNS).
+
+### Manual (no HACS)
 
 Copy `custom_components/proliphix_plus/` to your Home Assistant `custom_components/` directory and restart.
 
