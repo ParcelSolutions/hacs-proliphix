@@ -1,0 +1,12 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/home-assistant/core
+    rev: "2024.1.0"
+    hooks:
+      - id: hassfest
+        files: ^custom_components/

@@ -1,0 +1,244 @@
+sync_time:
+  name: Sync time
+  description: Synchronize the thermostat clock with Home Assistant.
+  fields:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+set_time:
+  name: Set time
+  description: Set the thermostat clock to a specific Unix timestamp.
+  fields:
+    timestamp:
+      name: Timestamp
+      description: Unix epoch timestamp.
+      required: true
+      selector:
+        number:
+          min: 0
+          mode: box
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+set_timezone:
+  name: Set timezone
+  description: Sync thermostat clock using Home Assistant timezone settings.
+  fields:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+resume_schedule:
+  name: Resume schedule
+  description: Resume the programmed schedule and clear hold.
+  fields:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+upload_schedule:
+  name: Upload schedule
+  description: Upload a schedule to the thermostat (v1.1 — not yet implemented).
+  fields:
+    schedule:
+      name: Schedule
+      description: Schedule data (JSON or YAML string).
+      selector:
+        text:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+download_schedule:
+  name: Download schedule
+  description: Download the current schedule from the thermostat (v1.1 — not yet implemented).
+  fields:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+set_home:
+  name: Set home
+  description: Activate the Home preset.
+  fields:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+set_away:
+  name: Set away
+  description: Activate the Away preset.
+  fields:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+set_sleep:
+  name: Set sleep
+  description: Activate the Sleep preset.
+  fields:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+set_vacation:
+  name: Set vacation
+  description: Enable vacation mode with start/end dates and setpoints.
+  fields:
+    start:
+      name: Start
+      description: Vacation start Unix timestamp.
+      required: true
+      selector:
+        number:
+          min: 0
+          mode: box
+    end:
+      name: End
+      description: Vacation end Unix timestamp.
+      required: true
+      selector:
+        number:
+          min: 0
+          mode: box
+    heat:
+      name: Heat setpoint
+      description: Heating setpoint in Fahrenheit.
+      selector:
+        number:
+          min: 40
+          max: 99
+          step: 0.5
+          mode: box
+    cool:
+      name: Cool setpoint
+      description: Cooling setpoint in Fahrenheit.
+      selector:
+        number:
+          min: 40
+          max: 99
+          step: 0.5
+          mode: box
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+clear_vacation:
+  name: Clear vacation
+  description: Disable vacation mode.
+  fields:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+refresh:
+  name: Refresh
+  description: Force an immediate data refresh from the thermostat.
+  fields:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+reboot:
+  name: Reboot
+  description: Reboot the thermostat.
+  fields:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+read_oid:
+  name: Read OID
+  description: Read a raw OID value from the thermostat.
+  fields:
+    oid:
+      name: OID
+      description: OID identifier (e.g. 4.1.13 or 6.1.3.2.0).
+      required: true
+      selector:
+        text:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+write_oid:
+  name: Write OID
+  description: Write a raw OID value to the thermostat.
+  fields:
+    oid:
+      name: OID
+      description: OID identifier (e.g. 4.1.13 or 6.1.3.2.0).
+      required: true
+      selector:
+        text:
+    value:
+      name: Value
+      description: Value to write.
+      required: true
+      selector:
+        text:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus

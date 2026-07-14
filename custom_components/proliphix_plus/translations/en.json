@@ -1,0 +1,82 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Proliphix thermostat",
+        "description": "Enter the IP address and credentials for your Proliphix thermostat.",
+        "data": {
+          "host": "Host",
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the thermostat. Check the host and port.",
+      "invalid_auth": "Invalid username or password.",
+      "unknown": "Unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This thermostat is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Proliphix Plus options",
+        "data": {
+          "scan_interval": "Poll interval (seconds)",
+          "auto_time_sync": "Automatic daily time synchronization",
+          "heat_only": "Heat only (no cooling or fan connected)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "Thermostat"
+      }
+    },
+    "sensor": {
+      "indoor_temperature": { "name": "Indoor temperature" },
+      "outdoor_temperature": { "name": "Outdoor temperature" },
+      "humidity": { "name": "Humidity" },
+      "firmware_version": { "name": "Firmware version" },
+      "hardware_revision": { "name": "Hardware revision" },
+      "thermostat_model": { "name": "Thermostat model" },
+      "current_schedule": { "name": "Current schedule" },
+      "current_program": { "name": "Current program" },
+      "heat_runtime": { "name": "Heat runtime" },
+      "cool_runtime": { "name": "Cool runtime" },
+      "fan_runtime": { "name": "Fan runtime" },
+      "filter_hours": { "name": "Filter hours" },
+      "uptime": { "name": "Uptime" },
+      "last_synchronization": { "name": "Last synchronization" }
+    },
+    "switch": {
+      "schedule_enabled": { "name": "Schedule enabled" },
+      "vacation_enabled": { "name": "Vacation enabled" },
+      "hold_enabled": { "name": "Hold enabled" },
+      "fan_circulate": { "name": "Fan circulate" },
+      "temporary_hold": { "name": "Temporary hold" }
+    },
+    "button": {
+      "sync_time": { "name": "Sync time" },
+      "resume_schedule": { "name": "Resume schedule" },
+      "refresh_data": { "name": "Refresh data" },
+      "reboot_thermostat": { "name": "Reboot thermostat" },
+      "download_diagnostics": { "name": "Download diagnostics" }
+    },
+    "number": {
+      "home_heat": { "name": "Home heat" },
+      "home_cool": { "name": "Home cool" },
+      "away_heat": { "name": "Away heat" },
+      "away_cool": { "name": "Away cool" },
+      "sleep_heat": { "name": "Sleep heat" },
+      "sleep_cool": { "name": "Sleep cool" },
+      "vacation_heat": { "name": "Vacation heat" },
+      "vacation_cool": { "name": "Vacation cool" }
+    }
+  }
+}
