@@ -27,14 +27,14 @@ A modern Home Assistant HACS integration for **Proliphix thermostats**, providin
 
 You do **not** need to publish to the default HACS store. A **custom repository** is enough for personal use.
 
-#### GitHub repository settings (for CI / HACS validation)
+#### GitHub repository settings (for HACS)
 
-On GitHub, open **Settings → General** for this repo and set:
+CI sets the repository **description** and **topics** automatically. You can also edit them under **Settings → General** on GitHub:
 
 - **Description:** `Home Assistant integration for Proliphix Plus network thermostats`
 - **Topics:** `homeassistant`, `hacs`, `hacs-integration`, `proliphix`, `thermostat`, `climate`
 
-The HACS GitHub Action reads these from GitHub metadata. If the repo is **private**, also ensure it is accessible to Actions; some HACS checks download files via the GitHub API and may fail until the repo is **public** or metadata is configured.
+**Private repositories:** HACS install in Home Assistant works with a GitHub token, but the upstream `hacs/action` validator downloads files from `raw.githubusercontent.com` and cannot read private repos. This project validates HACS structure from the CI checkout instead. To use the official HACS action, make the repository **public**.
 
 #### 1. Push this project to GitHub
 
