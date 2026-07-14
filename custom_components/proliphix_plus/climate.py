@@ -35,7 +35,12 @@ from .const import (
 )
 from .coordinator import ProliphixDataUpdateCoordinator
 from .entity import ProliphixEntity
-from .helpers import full_system_hvac_modes, heat_only_hvac_modes, map_hvac_mode
+from .helpers import (
+    full_system_hvac_modes,
+    get_target_temperature,
+    heat_only_hvac_modes,
+    map_hvac_mode,
+)
 
 PRESET_NONE = "none"
 PRESET_SCHEDULE = "schedule"
@@ -105,15 +110,7 @@ class ProliphixClimateEntity(ProliphixEntity, ClimateEntity):
     @property
     def target_temperature(self) -> float | None:
         """Return target temperature based on active mode."""
-        if self.heat_only:
-            return self.data.setback_heat
-        mode = self.data.hvac_mode
-        if mode == HVAC_MODE_COOL:
-            return self.data.setback_cool
-        if mode == HVAC_MODE_HEAT:
-            return self.data.setback_heat
-        # Auto or off: return heat setback as default display
-        return self.data.setback_heat or self.data.setback_cool
+        return get_target_temperature(self.data, heat_only=self.heat_only)
 
     @property
     def hvac_action(self) -> HVACAction:

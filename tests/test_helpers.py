@@ -13,11 +13,13 @@ from custom_components.proliphix_plus.const import (
     HVAC_STATE_HEATING,
 )
 from custom_components.proliphix_plus.helpers import (
+    get_target_temperature,
     heat_only_hvac_modes,
     is_heat_only,
     map_hvac_action,
     map_hvac_mode,
 )
+from custom_components.proliphix_plus.models import ProliphixData
 
 
 def test_is_heat_only_default() -> None:
@@ -56,3 +58,38 @@ def test_map_hvac_action_heat_only_ignores_cooling() -> None:
 def test_heat_only_hvac_modes_list() -> None:
     """Heat-only exposes only off and heat."""
     assert heat_only_hvac_modes() == [HVACMode.OFF, HVACMode.HEAT]
+
+
+def test_get_target_temperature_heat_only() -> None:
+    """Heat-only returns the heat setback."""
+    data = ProliphixData.from_raw(
+        {
+            "OID4_1_5": "700",
+            "OID4_1_6": "780",
+            "OID4_1_1": str(HVAC_MODE_COOL),
+        }
+    )
+    assert get_target_temperature(data, heat_only=True) == 70.0
+
+
+def test_get_target_temperature_cool_mode() -> None:
+    """Cool mode returns the cool setback."""
+    data = ProliphixData.from_raw(
+        {
+            "OID4_1_5": "700",
+            "OID4_1_6": "780",
+            "OID4_1_1": str(HVAC_MODE_COOL),
+        }
+    )
+    assert get_target_temperature(data, heat_only=False) == 78.0
+
+
+def test_get_target_temperature_auto_mode() -> None:
+    """Auto mode falls back to whichever setback is available."""
+    data = ProliphixData.from_raw(
+        {
+            "OID4_1_5": "700",
+            "OID4_1_1": str(HVAC_MODE_AUTO),
+        }
+    )
+    assert get_target_temperature(data, heat_only=False) == 70.0

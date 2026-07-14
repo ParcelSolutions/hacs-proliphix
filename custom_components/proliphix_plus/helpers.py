@@ -17,6 +17,7 @@ from .const import (
     HVAC_STATE_HEATING_2,
     HVAC_STATE_HEATING_3,
 )
+from .models import ProliphixData
 
 
 def get_entry_options(entry: ConfigEntry) -> dict:
@@ -77,3 +78,15 @@ def map_hvac_action(raw_state: int | None, *, heat_only: bool) -> str:
     if raw_state == HVAC_MODE_OFF:
         return "off"
     return "idle"
+
+
+def get_target_temperature(data: ProliphixData, *, heat_only: bool) -> float | None:
+    """Return the active target temperature based on HVAC mode."""
+    if heat_only:
+        return data.setback_heat
+    mode = data.hvac_mode
+    if mode == HVAC_MODE_COOL:
+        return data.setback_cool
+    if mode == HVAC_MODE_HEAT:
+        return data.setback_heat
+    return data.setback_heat or data.setback_cool

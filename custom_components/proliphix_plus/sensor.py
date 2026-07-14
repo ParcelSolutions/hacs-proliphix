@@ -23,7 +23,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import CLASS_TO_PRESET, DOMAIN
 from .coordinator import ProliphixDataUpdateCoordinator
 from .entity import ProliphixEntity
-from .helpers import is_heat_only
+from .helpers import get_target_temperature, is_heat_only
 from .models import ProliphixData
 
 
@@ -40,6 +40,38 @@ class ProliphixSensorDescription:
 
 
 SENSORS: tuple[ProliphixSensorDescription, ...] = (
+    ProliphixSensorDescription(
+        key="temperature",
+        translation_key="temperature",
+        value_fn=lambda d: d.average_temp,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit=UnitOfTemperature.FAHRENHEIT,
+    ),
+    ProliphixSensorDescription(
+        key="target_temperature",
+        translation_key="target_temperature",
+        value_fn=lambda d: d.setback_heat,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit=UnitOfTemperature.FAHRENHEIT,
+    ),
+    ProliphixSensorDescription(
+        key="heat_setpoint",
+        translation_key="heat_setpoint",
+        value_fn=lambda d: d.setback_heat,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit=UnitOfTemperature.FAHRENHEIT,
+    ),
+    ProliphixSensorDescription(
+        key="cool_setpoint",
+        translation_key="cool_setpoint",
+        value_fn=lambda d: d.setback_cool,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit=UnitOfTemperature.FAHRENHEIT,
+    ),
     ProliphixSensorDescription(
         key="indoor_temperature",
         translation_key="indoor_temperature",
@@ -128,7 +160,7 @@ SENSORS: tuple[ProliphixSensorDescription, ...] = (
     ),
 )
 
-HEAT_ONLY_EXCLUDED_SENSORS = frozenset({"cool_runtime", "fan_runtime"})
+HEAT_ONLY_EXCLUDED_SENSORS = frozenset({"cool_runtime", "fan_runtime", "cool_setpoint"})
 
 
 async def async_setup_entry(
@@ -172,6 +204,8 @@ class ProliphixSensorEntity(ProliphixEntity, SensorEntity):
     @property
     def native_value(self) -> str | int | float | None:
         """Return sensor value."""
+        if self.entity_description.key == "target_temperature":
+            return get_target_temperature(self.data, heat_only=self.heat_only)
         return self.entity_description.value_fn(self.data)
 
     @property

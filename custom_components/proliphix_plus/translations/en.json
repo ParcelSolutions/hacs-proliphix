@@ -39,6 +39,10 @@
       }
     },
     "sensor": {
+      "temperature": { "name": "Temperature" },
+      "target_temperature": { "name": "Target temperature" },
+      "heat_setpoint": { "name": "Heat setpoint" },
+      "cool_setpoint": { "name": "Cool setpoint" },
       "indoor_temperature": { "name": "Indoor temperature" },
       "outdoor_temperature": { "name": "Outdoor temperature" },
       "humidity": { "name": "Humidity" },
