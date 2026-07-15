@@ -96,6 +96,7 @@ class ProliphixClimateEntity(ProliphixEntity, ClimateEntity):
         features = (
             ClimateEntityFeature.TARGET_TEMPERATURE
             | ClimateEntityFeature.PRESET_MODE
+            | ClimateEntityFeature.TURN_ON
             | ClimateEntityFeature.TURN_OFF
         )
         if not self.heat_only:
@@ -236,6 +237,14 @@ class ProliphixClimateEntity(ProliphixEntity, ClimateEntity):
             await self.coordinator.client.resume_schedule()
         elif preset_mode in PRESET_TO_CLASS:
             await self.coordinator.client.set_preset(PRESET_TO_CLASS[preset_mode])
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self) -> None:
+        """Turn on HVAC; heat-only uses heat, otherwise auto."""
+        if self.heat_only:
+            await self.coordinator.client.set_hvac_mode(HVAC_MODE_HEAT)
+        else:
+            await self.coordinator.client.set_hvac_mode(HVAC_MODE_AUTO)
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self) -> None:
