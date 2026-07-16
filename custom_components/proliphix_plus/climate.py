@@ -249,12 +249,10 @@ class ProliphixClimateEntity(ProliphixEntity, ClimateEntity):
             await self.coordinator.async_request_refresh()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
-        """Set day class for the whole week, then refresh thermostat setpoints."""
+        """Set day class for the whole week; UI updates from cached schedule temps."""
         if preset_mode not in PRESET_TO_CLASS:
             return
-        await self.coordinator.client.set_preset(PRESET_TO_CLASS[preset_mode])
-        # Re-read OIDs so target temperature reflects the applied schedule.
-        await self.coordinator.async_request_refresh()
+        await self.coordinator.async_set_preset(PRESET_TO_CLASS[preset_mode])
 
     async def async_turn_on(self) -> None:
         """Turn on HVAC; heat-only uses heat, otherwise auto."""

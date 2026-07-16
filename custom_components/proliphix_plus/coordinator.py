@@ -15,8 +15,8 @@ from .api import (
     ProliphixClient,
     ProliphixConnectionError,
 )
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
-from .models import ProliphixData
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, WEEKLY_SCHEDULE_OIDS
+from .models import ProliphixData, oid_key
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -85,10 +85,30 @@ class ProliphixDataUpdateCoordinator(DataUpdateCoordinator[ProliphixData]):
             except (ProliphixAuthError, ProliphixConnectionError) as err:
                 _LOGGER.warning("Auto time sync failed: %s", err)
 
+    def _apply_preset_locally(self, class_value: int) -> ProliphixData:
+        """Update cached OID state so climate target updates without a full poll."""
+        if self.data is None:
+            return ProliphixData()
+        raw = dict(self.data.raw)
+        for oid in WEEKLY_SCHEDULE_OIDS:
+            raw[oid_key(oid)] = str(class_value)
+        raw[oid_key("4.1.11")] = str(class_value)
+        # Resume schedule (not override) so target uses class period setpoints.
+        raw[oid_key("4.1.9")] = "1"
+        period_raw = raw.get(oid_key("4.1.12"), "0") or "0"
+        try:
+            period = int(period_raw)
+        except ValueError:
+            period = 0
+        if period < 1 or period > 4:
+            raw[oid_key("4.1.12")] = "1"
+        return ProliphixData.from_raw(raw)
+
     async def async_set_preset(self, class_value: int) -> None:
-        """Set preset by class value."""
+        """Set day-class preset, update UI immediately, refresh in background."""
         await self.client.set_preset(class_value)
-        await self.async_request_refresh()
+        self.async_set_updated_data(self._apply_preset_locally(class_value))
+        self.hass.async_create_task(self.async_request_refresh())
 
     async def async_sync_time(self) -> None:
         """Sync thermostat time."""

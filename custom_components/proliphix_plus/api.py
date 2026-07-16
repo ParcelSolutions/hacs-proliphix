@@ -148,8 +148,7 @@ class ProliphixClient:
         """Set every weekday to a day class (In/Out/Away) and resume schedule.
 
         Only updates weekly class assignment and CurrentClass. Period heat/cool
-        setpoints already stored on the thermostat are left unchanged; the next
-        poll reads those schedule temps for the climate target.
+        setpoints already stored on the thermostat are left unchanged.
         """
         if class_value not in (CLASS_HOME, CLASS_OUT, CLASS_AWAY):
             raise ValueError(f"Invalid day class: {class_value}")
@@ -161,8 +160,6 @@ class ProliphixClient:
         payload["4.1.11"] = class_value
         payload["4.1.9"] = "1"
         await self.write_oids(payload)
-        # Allow the thermostat to apply the selected day's schedule.
-        await asyncio.sleep(1)
 
     async def set_home(self) -> None:
         """Activate In/Home for the whole week."""

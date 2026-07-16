@@ -11,6 +11,9 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 
 from .const import (
+    CLASS_AWAY,
+    CLASS_HOME,
+    CLASS_OUT,
     DOMAIN,
     SERVICE_CLEAR_VACATION,
     SERVICE_DOWNLOAD_SCHEDULE,
@@ -103,23 +106,19 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
     async def handle_set_home(call: ServiceCall) -> None:
         coordinator = _get_coordinator(call)
-        await coordinator.client.set_home()
-        await coordinator.async_request_refresh()
+        await coordinator.async_set_preset(CLASS_HOME)
 
     async def handle_set_away(call: ServiceCall) -> None:
         coordinator = _get_coordinator(call)
-        await coordinator.client.set_away()
-        await coordinator.async_request_refresh()
+        await coordinator.async_set_preset(CLASS_AWAY)
 
     async def handle_set_out(call: ServiceCall) -> None:
         coordinator = _get_coordinator(call)
-        await coordinator.client.set_out()
-        await coordinator.async_request_refresh()
+        await coordinator.async_set_preset(CLASS_OUT)
 
     async def handle_set_sleep(call: ServiceCall) -> None:
         coordinator = _get_coordinator(call)
-        await coordinator.client.set_out()
-        await coordinator.async_request_refresh()
+        await coordinator.async_set_preset(CLASS_OUT)
 
     async def handle_set_vacation(call: ServiceCall) -> None:
         coordinator = _get_coordinator(call)
