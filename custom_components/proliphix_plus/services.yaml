@@ -84,8 +84,8 @@ download_schedule:
           integration: proliphix_plus
 
 set_home:
-  name: Set home
-  description: Activate the Home preset.
+  name: Set home (In)
+  description: Set the whole week to the In day class and refresh thermostat setpoints.
   fields:
     entity_id:
       name: Entity
@@ -97,7 +97,19 @@ set_home:
 
 set_away:
   name: Set away
-  description: Activate the Away preset.
+  description: Set the whole week to the Away day class and refresh thermostat setpoints.
+  fields:
+    entity_id:
+      name: Entity
+      description: Climate entity to target.
+      selector:
+        entity:
+          domain: climate
+          integration: proliphix_plus
+
+set_out:
+  name: Set out
+  description: Set the whole week to the Out day class and refresh thermostat setpoints.
   fields:
     entity_id:
       name: Entity
@@ -109,7 +121,7 @@ set_away:
 
 set_sleep:
   name: Set sleep
-  description: Activate the Sleep preset.
+  description: Alias for Set out (Out day class).
   fields:
     entity_id:
       name: Entity

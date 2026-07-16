@@ -72,10 +72,10 @@ OIDS: dict[str, str] = {
     "4.4.1.3.1.2": "HomePeriod2Start",
     "4.4.1.3.1.3": "HomePeriod3Start",
     "4.4.1.3.1.4": "HomePeriod4Start",
-    "4.4.1.3.2.1": "SleepPeriod1Start",
-    "4.4.1.3.2.2": "SleepPeriod2Start",
-    "4.4.1.3.2.3": "SleepPeriod3Start",
-    "4.4.1.3.2.4": "SleepPeriod4Start",
+    "4.4.1.3.2.1": "OutPeriod1Start",
+    "4.4.1.3.2.2": "OutPeriod2Start",
+    "4.4.1.3.2.3": "OutPeriod3Start",
+    "4.4.1.3.2.4": "OutPeriod4Start",
     "4.4.1.3.3.1": "AwayPeriod1Start",
     "4.4.1.3.3.2": "AwayPeriod2Start",
     "4.4.1.3.3.3": "AwayPeriod3Start",
@@ -85,10 +85,10 @@ OIDS: dict[str, str] = {
     "4.4.1.4.1.2": "HomePeriod2Heat",
     "4.4.1.4.1.3": "HomePeriod3Heat",
     "4.4.1.4.1.4": "HomePeriod4Heat",
-    "4.4.1.4.2.1": "SleepPeriod1Heat",
-    "4.4.1.4.2.2": "SleepPeriod2Heat",
-    "4.4.1.4.2.3": "SleepPeriod3Heat",
-    "4.4.1.4.2.4": "SleepPeriod4Heat",
+    "4.4.1.4.2.1": "OutPeriod1Heat",
+    "4.4.1.4.2.2": "OutPeriod2Heat",
+    "4.4.1.4.2.3": "OutPeriod3Heat",
+    "4.4.1.4.2.4": "OutPeriod4Heat",
     "4.4.1.4.3.1": "AwayPeriod1Heat",
     "4.4.1.4.3.2": "AwayPeriod2Heat",
     "4.4.1.4.3.3": "AwayPeriod3Heat",
@@ -98,10 +98,10 @@ OIDS: dict[str, str] = {
     "4.4.1.5.1.2": "HomePeriod2Cool",
     "4.4.1.5.1.3": "HomePeriod3Cool",
     "4.4.1.5.1.4": "HomePeriod4Cool",
-    "4.4.1.5.2.1": "SleepPeriod1Cool",
-    "4.4.1.5.2.2": "SleepPeriod2Cool",
-    "4.4.1.5.2.3": "SleepPeriod3Cool",
-    "4.4.1.5.2.4": "SleepPeriod4Cool",
+    "4.4.1.5.2.1": "OutPeriod1Cool",
+    "4.4.1.5.2.2": "OutPeriod2Cool",
+    "4.4.1.5.2.3": "OutPeriod3Cool",
+    "4.4.1.5.2.4": "OutPeriod4Cool",
     "4.4.1.5.3.1": "AwayPeriod1Cool",
     "4.4.1.5.3.2": "AwayPeriod2Cool",
     "4.4.1.5.3.3": "AwayPeriod3Cool",
@@ -139,12 +139,11 @@ HVAC_STATE_HEATING_3 = 5
 HVAC_STATE_COOLING = 6
 HVAC_STATE_COOLING_2 = 7
 
-# CurrentClass / day-class values (PDP API: In/Out/Away)
-CLASS_HOME = 1  # Occupied / In
-CLASS_SLEEP = 2  # Unoccupied / Out
-CLASS_AWAY = 3  # Other / Away
-CLASS_VACATION = 4  # Extended firmware; not in PDP R1.11
-CLASS_MANUAL = 5
+# CurrentClass / day-class values (PDP API: In/Out/Away only)
+CLASS_HOME = 1  # In / Occupied
+CLASS_OUT = 2  # Out / Unoccupied
+CLASS_AWAY = 3  # Away / Other
+CLASS_SLEEP = CLASS_OUT  # Back-compat alias
 
 # Fan state values
 FAN_STATE_AUTO = 1
@@ -156,23 +155,23 @@ HOLD_OFF = 1
 HOLD_TEMPORARY = 2
 HOLD_PERMANENT = 3
 
-# Preset mode mapping to CurrentClass value
+# Climate presets map 1:1 to the three day classes
 PRESET_TO_CLASS: dict[str, int] = {
     "home": CLASS_HOME,
+    "out": CLASS_OUT,
     "away": CLASS_AWAY,
-    "sleep": CLASS_SLEEP,
-    "vacation": CLASS_VACATION,
-    "manual": CLASS_MANUAL,
 }
 
 CLASS_TO_PRESET: dict[int, str] = {v: k for k, v in PRESET_TO_CLASS.items()}
+
+CLIMATE_PRESET_MODES: list[str] = list(PRESET_TO_CLASS.keys())
 
 # Schedule day-class setbacks use period tables, not a single preset OID.
 # Heat: 4.4.1.4.{class}.{period}  Cool: 4.4.1.5.{class}.{period}
 SCHEDULE_PERIODS: tuple[str, ...] = ("morn", "day", "eve", "night")
 PRESET_TO_SCHEDULE_CLASS: dict[str, int] = {
     "home": CLASS_HOME,
-    "sleep": CLASS_SLEEP,
+    "out": CLASS_OUT,
     "away": CLASS_AWAY,
 }
 
@@ -197,7 +196,8 @@ SERVICE_UPLOAD_SCHEDULE = "upload_schedule"
 SERVICE_DOWNLOAD_SCHEDULE = "download_schedule"
 SERVICE_SET_HOME = "set_home"
 SERVICE_SET_AWAY = "set_away"
-SERVICE_SET_SLEEP = "set_sleep"
+SERVICE_SET_OUT = "set_out"
+SERVICE_SET_SLEEP = "set_sleep"  # Alias for set_out
 SERVICE_SET_VACATION = "set_vacation"
 SERVICE_CLEAR_VACATION = "clear_vacation"
 SERVICE_REFRESH = "refresh"

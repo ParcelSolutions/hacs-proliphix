@@ -42,12 +42,23 @@ def test_get_schedule_temp() -> None:
     raw = {
         "OID4_4_1_4_3_1": "500",
         "OID4_4_1_5_3_1": "842",
+        "OID4_4_1_4_2_1": "608",
+        "OID4_4_3_2_1": "1",
+        "OID4_4_3_2_2": "1",
+        "OID4_4_3_2_3": "1",
+        "OID4_4_3_2_4": "1",
+        "OID4_4_3_2_5": "1",
+        "OID4_4_3_2_6": "1",
+        "OID4_4_3_2_7": "1",
     }
     data = ProliphixData.from_raw(raw)
     assert data.get_schedule_temp("away", 1, heat=True) == 50.0
     assert data.get_schedule_temp("away", 1, heat=False) == 84.2
     assert data.get_preset_temp("away", heat=True) == 50.0
     assert data.get_preset_temp("vacation", heat=True) == 50.0
+    assert data.get_schedule_temp("out", 1, heat=True) == 60.8
+    assert data.get_schedule_temp("sleep", 1, heat=True) == 60.8
+    assert data.weekly_schedule_class == 1
 
 
 def test_decidegrees_to_celsius() -> None:

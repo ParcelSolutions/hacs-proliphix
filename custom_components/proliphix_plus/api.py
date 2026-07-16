@@ -13,7 +13,7 @@ from homeassistant.util import dt as dt_util
 from .const import (
     CLASS_AWAY,
     CLASS_HOME,
-    CLASS_SLEEP,
+    CLASS_OUT,
     HOLD_OFF,
     MAX_ATTEMPTS,
     POLL_OIDS,
@@ -145,28 +145,37 @@ class ProliphixClient:
         await self.write_oids({"2.5.1": timestamp})
 
     async def set_preset(self, class_value: int) -> None:
-        """Set weekly schedule class and current class."""
+        """Set every weekday to a day class (In/Out/Away) and resume schedule.
+
+        Matches Proliphix weekly class OIDs 4.4.3.2.1–7 plus schedule commit.
+        CurrentClass (4.1.11) is read-only and updates after the schedule applies.
+        """
+        if class_value not in (CLASS_HOME, CLASS_OUT, CLASS_AWAY):
+            raise ValueError(f"Invalid day class: {class_value}")
         payload: dict[str, Any] = {
             oid: str(class_value) for oid in WEEKLY_SCHEDULE_OIDS
         }
         payload["2.5.1"] = self.clock_value()
-        payload["4.1.11"] = class_value
         payload["4.1.9"] = "1"
         await self.write_oids(payload)
-        # Brief pause then verify
+        # Allow schedule engine to apply period setbacks before the next poll.
         await asyncio.sleep(1)
 
     async def set_home(self) -> None:
-        """Activate home preset."""
+        """Activate In/Home for the whole week."""
         await self.set_preset(CLASS_HOME)
 
     async def set_away(self) -> None:
-        """Activate away preset."""
+        """Activate Away for the whole week."""
         await self.set_preset(CLASS_AWAY)
 
+    async def set_out(self) -> None:
+        """Activate Out for the whole week."""
+        await self.set_preset(CLASS_OUT)
+
     async def set_sleep(self) -> None:
-        """Activate sleep preset."""
-        await self.set_preset(CLASS_SLEEP)
+        """Back-compat alias for Out."""
+        await self.set_out()
 
     async def resume_schedule(self) -> None:
         """Resume programmed schedule (clear hold)."""

@@ -20,6 +20,7 @@ from .const import (
     SERVICE_RESUME_SCHEDULE,
     SERVICE_SET_AWAY,
     SERVICE_SET_HOME,
+    SERVICE_SET_OUT,
     SERVICE_SET_SLEEP,
     SERVICE_SET_TIME,
     SERVICE_SET_TIMEZONE,
@@ -110,9 +111,14 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         await coordinator.client.set_away()
         await coordinator.async_request_refresh()
 
+    async def handle_set_out(call: ServiceCall) -> None:
+        coordinator = _get_coordinator(call)
+        await coordinator.client.set_out()
+        await coordinator.async_request_refresh()
+
     async def handle_set_sleep(call: ServiceCall) -> None:
         coordinator = _get_coordinator(call)
-        await coordinator.client.set_sleep()
+        await coordinator.client.set_out()
         await coordinator.async_request_refresh()
 
     async def handle_set_vacation(call: ServiceCall) -> None:
@@ -200,6 +206,12 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         DOMAIN,
         SERVICE_SET_AWAY,
         handle_set_away,
+        schema=vol.Schema({vol.Optional("entity_id"): cv.entity_ids}),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_OUT,
+        handle_set_out,
         schema=vol.Schema({vol.Optional("entity_id"): cv.entity_ids}),
     )
     hass.services.async_register(

@@ -35,7 +35,17 @@
   "entity": {
     "climate": {
       "thermostat": {
-        "name": "Thermostat"
+        "name": "Thermostat",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "home": "In",
+              "out": "Out",
+              "away": "Away",
+              "none": "None"
+            }
+          }
+        }
       }
     },
     "sensor": {
@@ -81,14 +91,14 @@
       "home_eve_cool": { "name": "Home evening cool" },
       "home_night_heat": { "name": "Home night heat" },
       "home_night_cool": { "name": "Home night cool" },
-      "sleep_morn_heat": { "name": "Sleep morning heat" },
-      "sleep_morn_cool": { "name": "Sleep morning cool" },
-      "sleep_day_heat": { "name": "Sleep day heat" },
-      "sleep_day_cool": { "name": "Sleep day cool" },
-      "sleep_eve_heat": { "name": "Sleep evening heat" },
-      "sleep_eve_cool": { "name": "Sleep evening cool" },
-      "sleep_night_heat": { "name": "Sleep night heat" },
-      "sleep_night_cool": { "name": "Sleep night cool" },
+      "out_morn_heat": { "name": "Out morning heat" },
+      "out_morn_cool": { "name": "Out morning cool" },
+      "out_day_heat": { "name": "Out day heat" },
+      "out_day_cool": { "name": "Out day cool" },
+      "out_eve_heat": { "name": "Out evening heat" },
+      "out_eve_cool": { "name": "Out evening cool" },
+      "out_night_heat": { "name": "Out night heat" },
+      "out_night_cool": { "name": "Out night cool" },
       "away_morn_heat": { "name": "Away morning heat" },
       "away_morn_cool": { "name": "Away morning cool" },
       "away_day_heat": { "name": "Away day heat" },

@@ -17,6 +17,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     CLASS_TO_PRESET,
+    CLIMATE_PRESET_MODES,
     DOMAIN,
     FAN_STATE_AUTO,
     FAN_STATE_CIRCULATE,
@@ -43,7 +44,6 @@ from .helpers import (
 )
 
 PRESET_NONE = "none"
-PRESET_SCHEDULE = "schedule"
 
 HA_TO_FAN = {
     "auto": FAN_STATE_AUTO,
@@ -168,7 +168,10 @@ class ProliphixClimateEntity(ProliphixEntity, ClimateEntity):
 
     @property
     def preset_mode(self) -> str | None:
-        """Return current preset mode."""
+        """Return active day-class preset from weekly schedule or CurrentClass."""
+        weekly = self.data.weekly_schedule_class
+        if weekly is not None and weekly in CLASS_TO_PRESET:
+            return CLASS_TO_PRESET[weekly]
         current = self.data.current_class
         if current is not None and current in CLASS_TO_PRESET:
             return CLASS_TO_PRESET[current]
@@ -176,8 +179,8 @@ class ProliphixClimateEntity(ProliphixEntity, ClimateEntity):
 
     @property
     def preset_modes(self) -> list[str] | None:
-        """Return available preset modes."""
-        return ["home", "away", "sleep", "vacation", "manual", PRESET_SCHEDULE]
+        """Return In/Out/Away day-class presets."""
+        return list(CLIMATE_PRESET_MODES)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -187,8 +190,12 @@ class ProliphixClimateEntity(ProliphixEntity, ClimateEntity):
             attrs["fan_state_raw"] = self.data.fan_state
         if self.data.hold_state is not None:
             attrs["hold_state"] = self.data.hold_state
-        if self.data.vacation_state is not None:
-            attrs["vacation_active"] = bool(self.data.vacation_state)
+        if self.data.current_class is not None:
+            attrs["current_class"] = self.data.current_class
+        if self.data.setback_heat is not None:
+            attrs["schedule_heat"] = self.data.setback_heat
+        if not self.heat_only and self.data.setback_cool is not None:
+            attrs["schedule_cool"] = self.data.setback_cool
         return attrs
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
@@ -232,11 +239,11 @@ class ProliphixClimateEntity(ProliphixEntity, ClimateEntity):
             await self.coordinator.async_request_refresh()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
-        """Set preset mode."""
-        if preset_mode == PRESET_SCHEDULE:
-            await self.coordinator.client.resume_schedule()
-        elif preset_mode in PRESET_TO_CLASS:
-            await self.coordinator.client.set_preset(PRESET_TO_CLASS[preset_mode])
+        """Set day class for the whole week, then refresh thermostat setpoints."""
+        if preset_mode not in PRESET_TO_CLASS:
+            return
+        await self.coordinator.client.set_preset(PRESET_TO_CLASS[preset_mode])
+        # Re-read OIDs so target temperature reflects the applied schedule.
         await self.coordinator.async_request_refresh()
 
     async def async_turn_on(self) -> None:

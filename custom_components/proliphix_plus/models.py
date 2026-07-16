@@ -179,6 +179,24 @@ class ProliphixData:
         return None
 
     @property
+    def weekly_day_classes(self) -> list[int | None]:
+        """Return Sunday–Saturday day-class assignments."""
+        from .const import WEEKLY_SCHEDULE_OIDS
+
+        return [int_or_none(self.raw.get(oid_key(oid))) for oid in WEEKLY_SCHEDULE_OIDS]
+
+    @property
+    def weekly_schedule_class(self) -> int | None:
+        """Return class when all weekdays share one day class, else None."""
+        classes = [value for value in self.weekly_day_classes if value is not None]
+        if len(classes) != 7:
+            return None
+        first = classes[0]
+        if all(value == first for value in classes):
+            return first
+        return None
+
+    @property
     def filter_hours(self) -> int | None:
         return int_or_none(self.raw.get(oid_key("4.6.1")))
 
@@ -204,6 +222,11 @@ class ProliphixData:
             schedule_heat_oid,
         )
 
+        # Accept legacy "sleep" name as Out.
+        if preset == "sleep":
+            preset = "out"
+        if preset == "vacation":
+            preset = "away"
         class_index = PRESET_TO_SCHEDULE_CLASS.get(preset)
         if class_index is None or period < 1 or period > 4:
             return None
@@ -215,9 +238,7 @@ class ProliphixData:
         return setback_to_fahrenheit(self.raw.get(oid_key(oid)))
 
     def get_preset_temp(self, preset: str, heat: bool = True) -> float | None:
-        """Get period-1 setback for a day class (vacation maps to away)."""
-        if preset == "vacation":
-            preset = "away"
+        """Get period-1 setback for a day class."""
         return self.get_schedule_temp(preset, period=1, heat=heat)
 
     @classmethod
