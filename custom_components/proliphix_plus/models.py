@@ -174,6 +174,19 @@ class ProliphixData:
         return int_or_none(self.raw.get(oid_key("2.5.1")))
 
     @property
+    def active_period(self) -> int | None:
+        """Return active schedule period (1–4), or None if hold/unknown."""
+        period = int_or_none(self.raw.get(oid_key("4.1.12")))
+        if period is None or period < 1 or period > 4:
+            return None
+        return period
+
+    @property
+    def setback_status(self) -> int | None:
+        """Return setback status (1=normal/schedule, 2=hold, 3=override)."""
+        return int_or_none(self.raw.get(oid_key("4.1.9")))
+
+    @property
     def active_schedule(self) -> str | None:
         """No schedule-name OID exists in the PDP API; kept for diagnostics compat."""
         return None

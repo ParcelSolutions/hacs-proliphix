@@ -9,6 +9,7 @@ from custom_components.proliphix_plus.const import (
     CONF_HEAT_ONLY,
     HVAC_MODE_AUTO,
     HVAC_MODE_COOL,
+    HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
     HVAC_STATE_HEATING,
 )
@@ -70,6 +71,46 @@ def test_get_target_temperature_heat_only() -> None:
         }
     )
     assert get_target_temperature(data, heat_only=True) == 70.0
+
+
+def test_get_target_temperature_uses_schedule_class() -> None:
+    """Uniform weekly class uses thermostat schedule period temps."""
+    raw = {
+        "OID4_1_5": "500",  # stale live setback
+        "OID4_1_1": str(HVAC_MODE_HEAT),
+        "OID4_1_9": "1",
+        "OID4_1_12": "3",
+        "OID4_4_1_4_1_3": "698",  # home eve heat
+        "OID4_4_3_2_1": "1",
+        "OID4_4_3_2_2": "1",
+        "OID4_4_3_2_3": "1",
+        "OID4_4_3_2_4": "1",
+        "OID4_4_3_2_5": "1",
+        "OID4_4_3_2_6": "1",
+        "OID4_4_3_2_7": "1",
+    }
+    data = ProliphixData.from_raw(raw)
+    assert get_target_temperature(data, heat_only=True) == 69.8
+
+
+def test_get_target_temperature_override_keeps_setback() -> None:
+    """Temperature override still uses live setbacks."""
+    raw = {
+        "OID4_1_5": "720",
+        "OID4_1_1": str(HVAC_MODE_HEAT),
+        "OID4_1_9": "3",
+        "OID4_1_12": "6",
+        "OID4_4_1_4_1_3": "698",
+        "OID4_4_3_2_1": "1",
+        "OID4_4_3_2_2": "1",
+        "OID4_4_3_2_3": "1",
+        "OID4_4_3_2_4": "1",
+        "OID4_4_3_2_5": "1",
+        "OID4_4_3_2_6": "1",
+        "OID4_4_3_2_7": "1",
+    }
+    data = ProliphixData.from_raw(raw)
+    assert get_target_temperature(data, heat_only=True) == 72.0
 
 
 def test_get_target_temperature_cool_mode() -> None:

@@ -192,10 +192,20 @@ class ProliphixClimateEntity(ProliphixEntity, ClimateEntity):
             attrs["hold_state"] = self.data.hold_state
         if self.data.current_class is not None:
             attrs["current_class"] = self.data.current_class
-        if self.data.setback_heat is not None:
+        period = self.data.active_period or 1
+        weekly = self.data.weekly_schedule_class
+        if weekly is not None and weekly in CLASS_TO_PRESET:
+            preset = CLASS_TO_PRESET[weekly]
+            heat = self.data.get_schedule_temp(preset, period, heat=True)
+            cool = self.data.get_schedule_temp(preset, period, heat=False)
+            if heat is not None:
+                attrs["schedule_heat"] = heat
+            if not self.heat_only and cool is not None:
+                attrs["schedule_cool"] = cool
+        elif self.data.setback_heat is not None:
             attrs["schedule_heat"] = self.data.setback_heat
-        if not self.heat_only and self.data.setback_cool is not None:
-            attrs["schedule_cool"] = self.data.setback_cool
+            if not self.heat_only and self.data.setback_cool is not None:
+                attrs["schedule_cool"] = self.data.setback_cool
         return attrs
 
     async def async_set_temperature(self, **kwargs: Any) -> None:

@@ -147,18 +147,21 @@ class ProliphixClient:
     async def set_preset(self, class_value: int) -> None:
         """Set every weekday to a day class (In/Out/Away) and resume schedule.
 
-        Matches Proliphix weekly class OIDs 4.4.3.2.1–7 plus schedule commit.
-        CurrentClass (4.1.11) is read-only and updates after the schedule applies.
+        Only updates weekly class assignment and CurrentClass. Period heat/cool
+        setpoints already stored on the thermostat are left unchanged; the next
+        poll reads those schedule temps for the climate target.
         """
         if class_value not in (CLASS_HOME, CLASS_OUT, CLASS_AWAY):
             raise ValueError(f"Invalid day class: {class_value}")
+
         payload: dict[str, Any] = {
             oid: str(class_value) for oid in WEEKLY_SCHEDULE_OIDS
         }
         payload["2.5.1"] = self.clock_value()
+        payload["4.1.11"] = class_value
         payload["4.1.9"] = "1"
         await self.write_oids(payload)
-        # Allow schedule engine to apply period setbacks before the next poll.
+        # Allow the thermostat to apply the selected day's schedule.
         await asyncio.sleep(1)
 
     async def set_home(self) -> None:
@@ -185,16 +188,28 @@ class ProliphixClient:
         """Set hold state (temporary or permanent)."""
         await self.write_oids({"4.1.7": hold_type, "4.1.9": "1"})
 
-    async def set_temperature(self, heat: float | None, cool: float | None) -> None:
-        """Set heat and/or cool setback temperatures."""
+    async def set_temperature(
+        self,
+        heat: float | None,
+        cool: float | None,
+        *,
+        commit_schedule: bool = False,
+    ) -> None:
+        """Set heat and/or cool setback temperatures.
+
+        By default this does not send OID 4.1.9. Including schedule commit with a
+        setpoint write makes the thermostat discard the new temps on this firmware.
+        """
         oids: dict[str, Any] = {}
         if heat is not None:
             oids["4.1.5"] = fahrenheit_to_decidegrees(heat)
         if cool is not None:
             oids["4.1.6"] = fahrenheit_to_decidegrees(cool)
-        if oids:
+        if not oids:
+            return
+        if commit_schedule:
             oids["4.1.9"] = "1"
-            await self.write_oids(oids)
+        await self.write_oids(oids)
 
     async def set_hvac_mode(self, mode: int) -> None:
         """Set HVAC mode."""

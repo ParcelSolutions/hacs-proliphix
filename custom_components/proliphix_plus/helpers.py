@@ -81,12 +81,41 @@ def map_hvac_action(raw_state: int | None, *, heat_only: bool) -> str:
 
 
 def get_target_temperature(data: ProliphixData, *, heat_only: bool) -> float | None:
-    """Return the active target temperature based on HVAC mode."""
+    """Return target temperature from schedule class setpoints or live setbacks.
+
+    When the week is set to a single day class (In/Out/Away) and the thermostat is
+    not in temperature override, use that class's active-period schedule temp from
+    the thermostat. Manual overrides still use live 4.1.5 / 4.1.6 setbacks.
+    """
+    schedule_heat = None
+    schedule_cool = None
+    weekly = data.weekly_schedule_class
+    if weekly is not None:
+        from .const import CLASS_TO_PRESET
+
+        preset = CLASS_TO_PRESET.get(weekly)
+        period = data.active_period or 1
+        if preset is not None:
+            schedule_heat = data.get_schedule_temp(preset, period, heat=True)
+            schedule_cool = data.get_schedule_temp(preset, period, heat=False)
+
+    # Override / hold: trust live setbacks written by the user or HVAC.
+    in_override = data.active_period in (5, 6) or data.setback_status == 3
+    use_schedule = not in_override and weekly is not None
+
     if heat_only:
+        if use_schedule and schedule_heat is not None:
+            return schedule_heat
         return data.setback_heat
     mode = data.hvac_mode
     if mode == HVAC_MODE_COOL:
+        if use_schedule and schedule_cool is not None:
+            return schedule_cool
         return data.setback_cool
     if mode == HVAC_MODE_HEAT:
+        if use_schedule and schedule_heat is not None:
+            return schedule_heat
         return data.setback_heat
+    if use_schedule:
+        return schedule_heat or schedule_cool
     return data.setback_heat or data.setback_cool
