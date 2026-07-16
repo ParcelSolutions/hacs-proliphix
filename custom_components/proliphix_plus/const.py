@@ -67,18 +67,45 @@ OIDS: dict[str, str] = {
     "4.1.7": "HoldState",
     "4.1.8": "HoldUntil",
     "4.1.10": "VacationState",
-    # Preset setback temperatures (heat/cool per class)
-    "4.4.1.1.1.1": "HomeHeatSetback",
-    "4.4.1.1.1.2": "HomeCoolSetback",
-    "4.4.1.1.2.1": "AwayHeatSetback",
-    "4.4.1.1.2.2": "AwayCoolSetback",
-    "4.4.1.1.3.1": "SleepHeatSetback",
-    "4.4.1.1.3.2": "SleepCoolSetback",
-    "4.4.1.1.4.1": "VacationHeatSetback",
-    "4.4.1.1.4.2": "VacationCoolSetback",
-    # Vacation dates (epoch timestamps)
-    "4.4.1.2.1": "VacationStart",
-    "4.4.1.2.2": "VacationEnd",
+    # Schedule period start times (minutes from midnight): 4.4.1.3.{class}.{period}
+    "4.4.1.3.1.1": "HomePeriod1Start",
+    "4.4.1.3.1.2": "HomePeriod2Start",
+    "4.4.1.3.1.3": "HomePeriod3Start",
+    "4.4.1.3.1.4": "HomePeriod4Start",
+    "4.4.1.3.2.1": "SleepPeriod1Start",
+    "4.4.1.3.2.2": "SleepPeriod2Start",
+    "4.4.1.3.2.3": "SleepPeriod3Start",
+    "4.4.1.3.2.4": "SleepPeriod4Start",
+    "4.4.1.3.3.1": "AwayPeriod1Start",
+    "4.4.1.3.3.2": "AwayPeriod2Start",
+    "4.4.1.3.3.3": "AwayPeriod3Start",
+    "4.4.1.3.3.4": "AwayPeriod4Start",
+    # Schedule period heat setbacks (decidegrees F): 4.4.1.4.{class}.{period}
+    "4.4.1.4.1.1": "HomePeriod1Heat",
+    "4.4.1.4.1.2": "HomePeriod2Heat",
+    "4.4.1.4.1.3": "HomePeriod3Heat",
+    "4.4.1.4.1.4": "HomePeriod4Heat",
+    "4.4.1.4.2.1": "SleepPeriod1Heat",
+    "4.4.1.4.2.2": "SleepPeriod2Heat",
+    "4.4.1.4.2.3": "SleepPeriod3Heat",
+    "4.4.1.4.2.4": "SleepPeriod4Heat",
+    "4.4.1.4.3.1": "AwayPeriod1Heat",
+    "4.4.1.4.3.2": "AwayPeriod2Heat",
+    "4.4.1.4.3.3": "AwayPeriod3Heat",
+    "4.4.1.4.3.4": "AwayPeriod4Heat",
+    # Schedule period cool setbacks (decidegrees F): 4.4.1.5.{class}.{period}
+    "4.4.1.5.1.1": "HomePeriod1Cool",
+    "4.4.1.5.1.2": "HomePeriod2Cool",
+    "4.4.1.5.1.3": "HomePeriod3Cool",
+    "4.4.1.5.1.4": "HomePeriod4Cool",
+    "4.4.1.5.2.1": "SleepPeriod1Cool",
+    "4.4.1.5.2.2": "SleepPeriod2Cool",
+    "4.4.1.5.2.3": "SleepPeriod3Cool",
+    "4.4.1.5.2.4": "SleepPeriod4Cool",
+    "4.4.1.5.3.1": "AwayPeriod1Cool",
+    "4.4.1.5.3.2": "AwayPeriod2Cool",
+    "4.4.1.5.3.3": "AwayPeriod3Cool",
+    "4.4.1.5.3.4": "AwayPeriod4Cool",
     # Filter hours
     "4.6.1": "FilterHours",
     # Reboot
@@ -112,11 +139,11 @@ HVAC_STATE_HEATING_3 = 5
 HVAC_STATE_COOLING = 6
 HVAC_STATE_COOLING_2 = 7
 
-# CurrentClass / occupation values
-CLASS_HOME = 1
-CLASS_SLEEP = 2
-CLASS_AWAY = 3
-CLASS_VACATION = 4
+# CurrentClass / day-class values (PDP API: In/Out/Away)
+CLASS_HOME = 1  # Occupied / In
+CLASS_SLEEP = 2  # Unoccupied / Out
+CLASS_AWAY = 3  # Other / Away
+CLASS_VACATION = 4  # Extended firmware; not in PDP R1.11
 CLASS_MANUAL = 5
 
 # Fan state values
@@ -140,13 +167,24 @@ PRESET_TO_CLASS: dict[str, int] = {
 
 CLASS_TO_PRESET: dict[int, str] = {v: k for k, v in PRESET_TO_CLASS.items()}
 
-# Preset temperature OIDs (heat, cool)
-PRESET_TEMP_OIDS: dict[str, tuple[str, str]] = {
-    "home": ("4.4.1.1.1.1", "4.4.1.1.1.2"),
-    "away": ("4.4.1.1.2.1", "4.4.1.1.2.2"),
-    "sleep": ("4.4.1.1.3.1", "4.4.1.1.3.2"),
-    "vacation": ("4.4.1.1.4.1", "4.4.1.1.4.2"),
+# Schedule day-class setbacks use period tables, not a single preset OID.
+# Heat: 4.4.1.4.{class}.{period}  Cool: 4.4.1.5.{class}.{period}
+SCHEDULE_PERIODS: tuple[str, ...] = ("morn", "day", "eve", "night")
+PRESET_TO_SCHEDULE_CLASS: dict[str, int] = {
+    "home": CLASS_HOME,
+    "sleep": CLASS_SLEEP,
+    "away": CLASS_AWAY,
 }
+
+
+def schedule_heat_oid(class_index: int, period: int) -> str:
+    """OID for period heat setback (1-based class and period)."""
+    return f"4.4.1.4.{class_index}.{period}"
+
+
+def schedule_cool_oid(class_index: int, period: int) -> str:
+    """OID for period cool setback (1-based class and period)."""
+    return f"4.4.1.5.{class_index}.{period}"
 
 ATTR_FAN = "fan"
 ATTR_RAW_OIDS = "raw_oids"

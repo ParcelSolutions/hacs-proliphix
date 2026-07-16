@@ -202,36 +202,69 @@ class ProliphixClient:
         heat: float,
         cool: float | None = None,
     ) -> None:
-        """Enable vacation mode with dates and setpoints."""
-        oids: dict[str, Any] = {
-            "4.4.1.2.1": start,
-            "4.4.1.2.2": end,
-            "4.4.1.1.4.1": fahrenheit_to_decidegrees(heat),
-            "4.1.10": 1,
-            "4.1.9": "1",
-        }
-        if cool is not None:
-            oids["4.4.1.1.4.2"] = fahrenheit_to_decidegrees(cool)
-        await self.write_oids(oids)
+        """Apply Away-class setbacks for all periods (vacation-style setpoint)."""
+        del start, end  # PDP R1.11 has no reliable vacation date OIDs on this path.
+        await self.set_preset_temperature("away", heat=heat, cool=cool)
 
     async def clear_vacation(self) -> None:
-        """Disable vacation mode."""
+        """Disable vacation mode when firmware supports it."""
         await self.write_oids({"4.1.10": 0, "4.1.9": "1"})
+
+    async def set_schedule_temperature(
+        self,
+        preset: str,
+        period: int,
+        heat: float | None,
+        cool: float | None,
+    ) -> None:
+        """Set one day-class period heat and/or cool setback."""
+        from .const import (
+            PRESET_TO_SCHEDULE_CLASS,
+            schedule_cool_oid,
+            schedule_heat_oid,
+        )
+
+        class_index = PRESET_TO_SCHEDULE_CLASS.get(preset)
+        if class_index is None:
+            raise ValueError(f"Unknown schedule preset: {preset}")
+        if period < 1 or period > 4:
+            raise ValueError(f"Invalid schedule period: {period}")
+
+        oids: dict[str, Any] = {"4.1.9": "1"}
+        if heat is not None:
+            oids[schedule_heat_oid(class_index, period)] = fahrenheit_to_decidegrees(
+                heat
+            )
+        if cool is not None:
+            oids[schedule_cool_oid(class_index, period)] = fahrenheit_to_decidegrees(
+                cool
+            )
+        await self.write_oids(oids)
 
     async def set_preset_temperature(
         self, preset: str, heat: float | None, cool: float | None
     ) -> None:
-        """Set preset heat/cool setback temperatures."""
-        from .const import PRESET_TEMP_OIDS
+        """Set all four periods for a day class to the same heat/cool values."""
+        from .const import (
+            PRESET_TO_SCHEDULE_CLASS,
+            schedule_cool_oid,
+            schedule_heat_oid,
+        )
 
-        if preset not in PRESET_TEMP_OIDS:
-            raise ValueError(f"Unknown preset: {preset}")
-        heat_oid, cool_oid = PRESET_TEMP_OIDS[preset]
+        class_index = PRESET_TO_SCHEDULE_CLASS.get(preset)
+        if class_index is None:
+            raise ValueError(f"Unknown schedule preset: {preset}")
+
         oids: dict[str, Any] = {"4.1.9": "1"}
-        if heat is not None:
-            oids[heat_oid] = fahrenheit_to_decidegrees(heat)
-        if cool is not None:
-            oids[cool_oid] = fahrenheit_to_decidegrees(cool)
+        for period in range(1, 5):
+            if heat is not None:
+                oids[schedule_heat_oid(class_index, period)] = (
+                    fahrenheit_to_decidegrees(heat)
+                )
+            if cool is not None:
+                oids[schedule_cool_oid(class_index, period)] = (
+                    fahrenheit_to_decidegrees(cool)
+                )
         await self.write_oids(oids)
 
     async def reboot(self) -> None:

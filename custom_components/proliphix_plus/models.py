@@ -52,6 +52,15 @@ def decidegrees_to_fahrenheit(raw: Any) -> float | None:
     return round(value / 10, 1)
 
 
+def setback_to_fahrenheit(raw: Any) -> float | None:
+    """Convert a schedule/setback decidegree value, ignoring invalid readings."""
+    value = decidegrees_to_fahrenheit(raw)
+    # PDP API documents schedule setbacks as 45.0–95.0 F (450–950 decidegrees).
+    if value is None or value < 45.0 or value > 95.0:
+        return None
+    return value
+
+
 def fahrenheit_to_decidegrees(value: float) -> int:
     """Convert Fahrenheit float to Proliphix decidegrees."""
     return int(round(value * 10))
@@ -166,7 +175,8 @@ class ProliphixData:
 
     @property
     def active_schedule(self) -> str | None:
-        return self.raw.get(oid_key("4.4.1.3.1.1")) or None
+        """No schedule-name OID exists in the PDP API; kept for diagnostics compat."""
+        return None
 
     @property
     def filter_hours(self) -> int | None:
@@ -174,28 +184,41 @@ class ProliphixData:
 
     @property
     def vacation_start(self) -> int | None:
-        return int_or_none(self.raw.get(oid_key("4.4.1.2.1")))
+        return None
 
     @property
     def vacation_end(self) -> int | None:
-        return int_or_none(self.raw.get(oid_key("4.4.1.2.2")))
+        return None
 
     def get_oid_value(self, oid: str) -> str | None:
         """Get raw OID value by short id."""
         return self.raw.get(oid_key(oid))
 
-    def get_preset_temp(self, preset: str, heat: bool = True) -> float | None:
-        """Get preset temperature in Fahrenheit."""
-        oids = {
-            "home": ("4.4.1.1.1.1", "4.4.1.1.1.2"),
-            "away": ("4.4.1.1.2.1", "4.4.1.1.2.2"),
-            "sleep": ("4.4.1.1.3.1", "4.4.1.1.3.2"),
-            "vacation": ("4.4.1.1.4.1", "4.4.1.1.4.2"),
-        }
-        if preset not in oids:
+    def get_schedule_temp(
+        self, preset: str, period: int, *, heat: bool = True
+    ) -> float | None:
+        """Get day-class period heat/cool setback in Fahrenheit."""
+        from .const import (
+            PRESET_TO_SCHEDULE_CLASS,
+            schedule_cool_oid,
+            schedule_heat_oid,
+        )
+
+        class_index = PRESET_TO_SCHEDULE_CLASS.get(preset)
+        if class_index is None or period < 1 or period > 4:
             return None
-        oid = oids[preset][0 if heat else 1]
-        return decidegrees_to_fahrenheit(self.raw.get(oid_key(oid)))
+        oid = (
+            schedule_heat_oid(class_index, period)
+            if heat
+            else schedule_cool_oid(class_index, period)
+        )
+        return setback_to_fahrenheit(self.raw.get(oid_key(oid)))
+
+    def get_preset_temp(self, preset: str, heat: bool = True) -> float | None:
+        """Get period-1 setback for a day class (vacation maps to away)."""
+        if preset == "vacation":
+            preset = "away"
+        return self.get_schedule_temp(preset, period=1, heat=heat)
 
     @classmethod
     def from_raw(cls, raw: dict[str, str]) -> ProliphixData:

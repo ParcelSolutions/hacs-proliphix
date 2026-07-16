@@ -8,6 +8,7 @@ from custom_components.proliphix_plus.models import (
     flatten_response,
     int_or_none,
     oid_key,
+    setback_to_fahrenheit,
 )
 
 
@@ -28,6 +29,25 @@ def test_decidegrees_to_fahrenheit() -> None:
     """Test temperature conversion from decidegrees."""
     # 720 decidegrees = 72.0 F
     assert decidegrees_to_fahrenheit("720") == 72.0
+
+
+def test_setback_to_fahrenheit_rejects_invalid() -> None:
+    """Invalid setback readings (e.g. class index mistaken for temp) are None."""
+    assert setback_to_fahrenheit("2") is None
+    assert setback_to_fahrenheit("500") == 50.0
+
+
+def test_get_schedule_temp() -> None:
+    """Schedule period temps use PDP period OIDs."""
+    raw = {
+        "OID4_4_1_4_3_1": "500",
+        "OID4_4_1_5_3_1": "842",
+    }
+    data = ProliphixData.from_raw(raw)
+    assert data.get_schedule_temp("away", 1, heat=True) == 50.0
+    assert data.get_schedule_temp("away", 1, heat=False) == 84.2
+    assert data.get_preset_temp("away", heat=True) == 50.0
+    assert data.get_preset_temp("vacation", heat=True) == 50.0
 
 
 def test_decidegrees_to_celsius() -> None:

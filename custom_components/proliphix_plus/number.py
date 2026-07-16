@@ -16,7 +16,13 @@ from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, PRESET_TEMP_OIDS
+from .const import (
+    DOMAIN,
+    PRESET_TO_SCHEDULE_CLASS,
+    SCHEDULE_PERIODS,
+    schedule_cool_oid,
+    schedule_heat_oid,
+)
 from .coordinator import ProliphixDataUpdateCoordinator
 from .entity import ProliphixEntity
 from .helpers import is_heat_only
@@ -25,50 +31,60 @@ from .models import ProliphixData
 
 @dataclass(frozen=True, kw_only=True)
 class ProliphixNumberDescription(NumberEntityDescription):
-    """Description for a Proliphix number entity."""
+    """Description for a Proliphix schedule setback number."""
 
     preset: str
+    period: int
     heat: bool
     value_fn: Callable[[ProliphixData], float | None]
     oid: str
 
 
 def _make_numbers() -> tuple[ProliphixNumberDescription, ...]:
-    """Build number descriptions for all preset heat/cool setpoints."""
+    """Build number descriptions for each day-class period heat/cool setback."""
     numbers: list[ProliphixNumberDescription] = []
-    for preset, (heat_oid, cool_oid) in PRESET_TEMP_OIDS.items():
-        numbers.append(
-            ProliphixNumberDescription(
-                key=f"{preset}_heat",
-                translation_key=f"{preset}_heat",
-                preset=preset,
-                heat=True,
-                value_fn=lambda d, p=preset: d.get_preset_temp(p, heat=True),
-                oid=heat_oid,
-                device_class=NumberDeviceClass.TEMPERATURE,
-                native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
-                mode=NumberMode.BOX,
-                native_min_value=40.0,
-                native_max_value=99.0,
-                native_step=0.5,
+    for preset, class_index in PRESET_TO_SCHEDULE_CLASS.items():
+        for period_index, period_key in enumerate(SCHEDULE_PERIODS, start=1):
+            heat_oid = schedule_heat_oid(class_index, period_index)
+            cool_oid = schedule_cool_oid(class_index, period_index)
+            numbers.append(
+                ProliphixNumberDescription(
+                    key=f"{preset}_{period_key}_heat",
+                    translation_key=f"{preset}_{period_key}_heat",
+                    preset=preset,
+                    period=period_index,
+                    heat=True,
+                    value_fn=lambda d, p=preset, i=period_index: d.get_schedule_temp(
+                        p, i, heat=True
+                    ),
+                    oid=heat_oid,
+                    device_class=NumberDeviceClass.TEMPERATURE,
+                    native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
+                    mode=NumberMode.BOX,
+                    native_min_value=45.0,
+                    native_max_value=95.0,
+                    native_step=0.5,
+                )
             )
-        )
-        numbers.append(
-            ProliphixNumberDescription(
-                key=f"{preset}_cool",
-                translation_key=f"{preset}_cool",
-                preset=preset,
-                heat=False,
-                value_fn=lambda d, p=preset: d.get_preset_temp(p, heat=False),
-                oid=cool_oid,
-                device_class=NumberDeviceClass.TEMPERATURE,
-                native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
-                mode=NumberMode.BOX,
-                native_min_value=40.0,
-                native_max_value=99.0,
-                native_step=0.5,
+            numbers.append(
+                ProliphixNumberDescription(
+                    key=f"{preset}_{period_key}_cool",
+                    translation_key=f"{preset}_{period_key}_cool",
+                    preset=preset,
+                    period=period_index,
+                    heat=False,
+                    value_fn=lambda d, p=preset, i=period_index: d.get_schedule_temp(
+                        p, i, heat=False
+                    ),
+                    oid=cool_oid,
+                    device_class=NumberDeviceClass.TEMPERATURE,
+                    native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
+                    mode=NumberMode.BOX,
+                    native_min_value=45.0,
+                    native_max_value=95.0,
+                    native_step=0.5,
+                )
             )
-        )
     return tuple(numbers)
 
 
@@ -94,7 +110,7 @@ async def async_setup_entry(
 
 
 class ProliphixNumberEntity(ProliphixEntity, NumberEntity):
-    """Representation of a Proliphix preset temperature number."""
+    """Representation of a Proliphix schedule period temperature."""
 
     entity_description: ProliphixNumberDescription
 
@@ -121,14 +137,14 @@ class ProliphixNumberEntity(ProliphixEntity, NumberEntity):
         return super().available
 
     async def async_set_native_value(self, value: float) -> None:
-        """Set preset temperature."""
+        """Set schedule period temperature."""
         desc = self.entity_description
         if desc.heat:
-            await self.coordinator.client.set_preset_temperature(
-                desc.preset, heat=value, cool=None
+            await self.coordinator.client.set_schedule_temperature(
+                desc.preset, desc.period, heat=value, cool=None
             )
         else:
-            await self.coordinator.client.set_preset_temperature(
-                desc.preset, heat=None, cool=value
+            await self.coordinator.client.set_schedule_temperature(
+                desc.preset, desc.period, heat=None, cool=value
             )
         await self.coordinator.async_request_refresh()

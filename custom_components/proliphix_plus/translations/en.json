@@ -73,14 +73,30 @@
       "download_diagnostics": { "name": "Download diagnostics" }
     },
     "number": {
-      "home_heat": { "name": "Home heat" },
-      "home_cool": { "name": "Home cool" },
-      "away_heat": { "name": "Away heat" },
-      "away_cool": { "name": "Away cool" },
-      "sleep_heat": { "name": "Sleep heat" },
-      "sleep_cool": { "name": "Sleep cool" },
-      "vacation_heat": { "name": "Vacation heat" },
-      "vacation_cool": { "name": "Vacation cool" }
+      "home_morn_heat": { "name": "Home morning heat" },
+      "home_morn_cool": { "name": "Home morning cool" },
+      "home_day_heat": { "name": "Home day heat" },
+      "home_day_cool": { "name": "Home day cool" },
+      "home_eve_heat": { "name": "Home evening heat" },
+      "home_eve_cool": { "name": "Home evening cool" },
+      "home_night_heat": { "name": "Home night heat" },
+      "home_night_cool": { "name": "Home night cool" },
+      "sleep_morn_heat": { "name": "Sleep morning heat" },
+      "sleep_morn_cool": { "name": "Sleep morning cool" },
+      "sleep_day_heat": { "name": "Sleep day heat" },
+      "sleep_day_cool": { "name": "Sleep day cool" },
+      "sleep_eve_heat": { "name": "Sleep evening heat" },
+      "sleep_eve_cool": { "name": "Sleep evening cool" },
+      "sleep_night_heat": { "name": "Sleep night heat" },
+      "sleep_night_cool": { "name": "Sleep night cool" },
+      "away_morn_heat": { "name": "Away morning heat" },
+      "away_morn_cool": { "name": "Away morning cool" },
+      "away_day_heat": { "name": "Away day heat" },
+      "away_day_cool": { "name": "Away day cool" },
+      "away_eve_heat": { "name": "Away evening heat" },
+      "away_eve_cool": { "name": "Away evening cool" },
+      "away_night_heat": { "name": "Away night heat" },
+      "away_night_cool": { "name": "Away night cool" }
     }
   }
 }
