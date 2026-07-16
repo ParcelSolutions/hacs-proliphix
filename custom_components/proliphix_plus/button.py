@@ -6,7 +6,7 @@ from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import Any
 
-from homeassistant.components.button import ButtonEntity
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -16,12 +16,10 @@ from .coordinator import ProliphixDataUpdateCoordinator
 from .entity import ProliphixEntity
 
 
-@dataclass(frozen=True)
-class ProliphixButtonDescription:
+@dataclass(frozen=True, kw_only=True)
+class ProliphixButtonDescription(ButtonEntityDescription):
     """Description for a Proliphix button."""
 
-    key: str
-    translation_key: str
     press_fn: Callable[[ProliphixDataUpdateCoordinator], Coroutine[Any, Any, None]]
 
 
@@ -104,7 +102,6 @@ class ProliphixButtonEntity(ProliphixEntity, ButtonEntity):
         super().__init__(coordinator)
         self.entity_description = description
         self._attr_unique_id = f"{self._entry_id}_{description.key}"
-        self._attr_translation_key = description.translation_key
 
     async def async_press(self) -> None:
         """Handle button press."""

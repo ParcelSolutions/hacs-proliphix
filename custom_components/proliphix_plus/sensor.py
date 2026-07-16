@@ -9,6 +9,7 @@ from datetime import datetime
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
+    SensorEntityDescription,
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -27,16 +28,11 @@ from .helpers import get_target_temperature, is_heat_only
 from .models import ProliphixData
 
 
-@dataclass(frozen=True)
-class ProliphixSensorDescription:
+@dataclass(frozen=True, kw_only=True)
+class ProliphixSensorDescription(SensorEntityDescription):
     """Description for a Proliphix sensor."""
 
-    key: str
-    translation_key: str
     value_fn: Callable[[ProliphixData], str | int | float | None]
-    device_class: SensorDeviceClass | None = None
-    state_class: SensorStateClass | None = None
-    native_unit: str | None = None
 
 
 SENSORS: tuple[ProliphixSensorDescription, ...] = (
@@ -46,7 +42,7 @@ SENSORS: tuple[ProliphixSensorDescription, ...] = (
         value_fn=lambda d: d.average_temp,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit=UnitOfTemperature.FAHRENHEIT,
+        native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
     ),
     ProliphixSensorDescription(
         key="target_temperature",
@@ -54,7 +50,7 @@ SENSORS: tuple[ProliphixSensorDescription, ...] = (
         value_fn=lambda d: d.setback_heat,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit=UnitOfTemperature.FAHRENHEIT,
+        native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
     ),
     ProliphixSensorDescription(
         key="heat_setpoint",
@@ -62,7 +58,7 @@ SENSORS: tuple[ProliphixSensorDescription, ...] = (
         value_fn=lambda d: d.setback_heat,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit=UnitOfTemperature.FAHRENHEIT,
+        native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
     ),
     ProliphixSensorDescription(
         key="cool_setpoint",
@@ -70,7 +66,7 @@ SENSORS: tuple[ProliphixSensorDescription, ...] = (
         value_fn=lambda d: d.setback_cool,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit=UnitOfTemperature.FAHRENHEIT,
+        native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
     ),
     ProliphixSensorDescription(
         key="indoor_temperature",
@@ -78,7 +74,7 @@ SENSORS: tuple[ProliphixSensorDescription, ...] = (
         value_fn=lambda d: d.average_temp,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit=UnitOfTemperature.FAHRENHEIT,
+        native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
     ),
     ProliphixSensorDescription(
         key="outdoor_temperature",
@@ -86,7 +82,7 @@ SENSORS: tuple[ProliphixSensorDescription, ...] = (
         value_fn=lambda d: d.outdoor_temp,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit=UnitOfTemperature.FAHRENHEIT,
+        native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
     ),
     ProliphixSensorDescription(
         key="humidity",
@@ -94,7 +90,7 @@ SENSORS: tuple[ProliphixSensorDescription, ...] = (
         value_fn=lambda d: d.humidity,
         device_class=SensorDeviceClass.HUMIDITY,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit=PERCENTAGE,
+        native_unit_of_measurement=PERCENTAGE,
     ),
     ProliphixSensorDescription(
         key="firmware_version",
@@ -128,35 +124,35 @@ SENSORS: tuple[ProliphixSensorDescription, ...] = (
         translation_key="heat_runtime",
         value_fn=lambda d: d.heat_usage,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        native_unit=UnitOfTime.MINUTES,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
     ),
     ProliphixSensorDescription(
         key="cool_runtime",
         translation_key="cool_runtime",
         value_fn=lambda d: d.cool_usage,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        native_unit=UnitOfTime.MINUTES,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
     ),
     ProliphixSensorDescription(
         key="fan_runtime",
         translation_key="fan_runtime",
         value_fn=lambda d: d.fan_usage,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        native_unit=UnitOfTime.MINUTES,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
     ),
     ProliphixSensorDescription(
         key="filter_hours",
         translation_key="filter_hours",
         value_fn=lambda d: d.filter_hours,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        native_unit=UnitOfTime.HOURS,
+        native_unit_of_measurement=UnitOfTime.HOURS,
     ),
     ProliphixSensorDescription(
         key="uptime",
         translation_key="uptime",
         value_fn=lambda d: d.uptime,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        native_unit=UnitOfTime.SECONDS,
+        native_unit_of_measurement=UnitOfTime.SECONDS,
     ),
 )
 
@@ -196,10 +192,6 @@ class ProliphixSensorEntity(ProliphixEntity, SensorEntity):
         super().__init__(coordinator)
         self.entity_description = description
         self._attr_unique_id = f"{self._entry_id}_{description.key}"
-        self._attr_translation_key = description.translation_key
-        self._attr_device_class = description.device_class
-        self._attr_state_class = description.state_class
-        self._attr_native_unit_of_measurement = description.native_unit
 
     @property
     def native_value(self) -> str | int | float | None:

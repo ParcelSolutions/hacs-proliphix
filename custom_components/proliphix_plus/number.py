@@ -5,7 +5,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from homeassistant.components.number import NumberEntity, NumberMode
+from homeassistant.components.number import (
+    NumberDeviceClass,
+    NumberEntity,
+    NumberEntityDescription,
+    NumberMode,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
@@ -18,12 +23,10 @@ from .helpers import is_heat_only
 from .models import ProliphixData
 
 
-@dataclass(frozen=True)
-class ProliphixNumberDescription:
+@dataclass(frozen=True, kw_only=True)
+class ProliphixNumberDescription(NumberEntityDescription):
     """Description for a Proliphix number entity."""
 
-    key: str
-    translation_key: str
     preset: str
     heat: bool
     value_fn: Callable[[ProliphixData], float | None]
@@ -42,6 +45,12 @@ def _make_numbers() -> tuple[ProliphixNumberDescription, ...]:
                 heat=True,
                 value_fn=lambda d, p=preset: d.get_preset_temp(p, heat=True),
                 oid=heat_oid,
+                device_class=NumberDeviceClass.TEMPERATURE,
+                native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
+                mode=NumberMode.BOX,
+                native_min_value=40.0,
+                native_max_value=99.0,
+                native_step=0.5,
             )
         )
         numbers.append(
@@ -52,6 +61,12 @@ def _make_numbers() -> tuple[ProliphixNumberDescription, ...]:
                 heat=False,
                 value_fn=lambda d, p=preset: d.get_preset_temp(p, heat=False),
                 oid=cool_oid,
+                device_class=NumberDeviceClass.TEMPERATURE,
+                native_unit_of_measurement=UnitOfTemperature.FAHRENHEIT,
+                mode=NumberMode.BOX,
+                native_min_value=40.0,
+                native_max_value=99.0,
+                native_step=0.5,
             )
         )
     return tuple(numbers)
@@ -83,12 +98,6 @@ class ProliphixNumberEntity(ProliphixEntity, NumberEntity):
 
     entity_description: ProliphixNumberDescription
 
-    _attr_native_unit_of_measurement = UnitOfTemperature.FAHRENHEIT
-    _attr_mode = NumberMode.BOX
-    _attr_native_min_value = 40.0
-    _attr_native_max_value = 99.0
-    _attr_native_step = 0.5
-
     def __init__(
         self,
         coordinator: ProliphixDataUpdateCoordinator,
@@ -98,7 +107,6 @@ class ProliphixNumberEntity(ProliphixEntity, NumberEntity):
         super().__init__(coordinator)
         self.entity_description = description
         self._attr_unique_id = f"{self._entry_id}_{description.key}"
-        self._attr_translation_key = description.translation_key
 
     @property
     def native_value(self) -> float | None:

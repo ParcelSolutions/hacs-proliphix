@@ -6,7 +6,7 @@ from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -24,12 +24,10 @@ from .helpers import is_heat_only
 from .models import ProliphixData
 
 
-@dataclass(frozen=True)
-class ProliphixSwitchDescription:
+@dataclass(frozen=True, kw_only=True)
+class ProliphixSwitchDescription(SwitchEntityDescription):
     """Description for a Proliphix switch."""
 
-    key: str
-    translation_key: str
     is_on_fn: Callable[[ProliphixData], bool | None]
     turn_on_fn: Callable[[ProliphixDataUpdateCoordinator], Coroutine[Any, Any, None]]
     turn_off_fn: Callable[[ProliphixDataUpdateCoordinator], Coroutine[Any, Any, None]]
@@ -184,7 +182,6 @@ class ProliphixSwitchEntity(ProliphixEntity, SwitchEntity):
         super().__init__(coordinator)
         self.entity_description = description
         self._attr_unique_id = f"{self._entry_id}_{description.key}"
-        self._attr_translation_key = description.translation_key
 
     @property
     def is_on(self) -> bool | None:
