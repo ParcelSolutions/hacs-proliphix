@@ -122,11 +122,12 @@ cp .env.example .env
 | `PROLIPHIX_PLUS_AUTO_TIME_SYNC` | `true` / `false` |
 | `PROLIPHIX_PLUS_HEAT_ONLY` | `true` when no cooling or fan is connected |
 
-Run tests and lint:
+Run tests and lint (Python **3.14** required for current Home Assistant / phacc):
 
 ```bash
+# optional: uv python install 3.14 && uv venv .venv --python 3.14 && source .venv/bin/activate
 pip install -r requirements_test.txt
-pytest tests -v                              # unit tests
+pytest tests -v                              # unit tests (HA Core via pytest-homeassistant-custom-component)
 python3 -m live_tests.run_live            # live thermostat checks (uses .env)
 ruff check custom_components tests live_tests
 ```

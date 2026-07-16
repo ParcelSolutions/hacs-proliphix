@@ -1,4 +1,4 @@
-pytest-homeassistant-custom-component==0.13.45
+pytest-homeassistant-custom-component==0.13.346
 aiohttp
 python-dotenv
 ruff

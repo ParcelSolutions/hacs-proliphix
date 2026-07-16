@@ -41,9 +41,15 @@ async def test_user_form_invalid_auth(hass: HomeAssistant) -> None:
 
 async def test_user_form_success(hass: HomeAssistant) -> None:
     """Test successful config flow."""
-    with patch(
-        "custom_components.proliphix_plus.config_flow.validate_input",
-        return_value={"title": "Home:Thermostat"},
+    with (
+        patch(
+            "custom_components.proliphix_plus.config_flow.validate_input",
+            return_value={"title": "Home:Thermostat"},
+        ),
+        patch(
+            "custom_components.proliphix_plus.async_setup_entry",
+            return_value=True,
+        ),
     ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN,
